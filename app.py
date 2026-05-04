@@ -186,10 +186,10 @@ with tab3:
             qoc_epochs = st.number_input("Training Epochs", min_value=10, max_value=500, value=50, step=10)
         with col_duration:
             # NEW: User defines how long the AI has to perform the transition
-            qoc_duration = st.number_input("Pulse Duration (t_max)", min_value=1.0, max_value=200.0, value=10.0, step=1.0)
+            qoc_duration = st.number_input("Pulse Duration", min_value=1.0, max_value=200.0, value=10.0, step=1.0)
             
         if st.button("Sculpt Laser Pulse (Train)", type="primary"):
-            with st.spinner(f"PyTorch is sculpting a {qoc_duration}s pulse..."):
+            with st.spinner(f"PyTorch is sculpting a {qoc_duration} atomic time unit pulse..."):
                 psi0_vec = states[:, qoc_init_idx]
                 target_vec = states[:, qoc_target_idx]
                 
