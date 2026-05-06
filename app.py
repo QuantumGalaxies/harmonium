@@ -89,18 +89,38 @@ if not available_ns:
     available_ns = ["1"] # Fallback
 
 active_n = st.sidebar.selectbox("Active System (N):", options=available_ns)
-H_matrix, dipole_dict = load_system(active_n)
 
-if dipole_dict is not None:
-    st.sidebar.success(f"✅ N={active_n} Matrices Loaded")
+# Load the raw, full-sized matrices
+H_raw, dipoles_raw = load_system(active_n)
+
+if H_raw is not None and dipoles_raw is not None:
+    original_size = H_raw.shape[0]
+    
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Matrix Truncation")
+    st.sidebar.write(f"Raw Matrix Size: {original_size}x{original_size}")
+    
+    # --- THE TRUNCATOR ---
+    # Default to 20 states, or the max size if it's smaller than 20
+    trunc_size = st.sidebar.slider("Energy Levels to Include:", min_value=2, max_value=original_size, value=min(20, original_size), step=1)
+    
+    # Slice the Hamiltonian and Dipoles down to the selected size
+    H_matrix = H_raw[:trunc_size, :trunc_size]
+    dipole_dict = {
+        'X-Axis': dipoles_raw['X-Axis'][:trunc_size, :trunc_size],
+        'Y-Axis': dipoles_raw['Y-Axis'][:trunc_size, :trunc_size],
+        'Z-Axis': dipoles_raw['Z-Axis'][:trunc_size, :trunc_size]
+    }
+    
+    st.sidebar.success(f"✅ Matrices Truncated to {trunc_size}x{trunc_size}")
+    
     st.sidebar.markdown("---")
     st.sidebar.subheader("Laser Polarization")
     selected_axis = st.sidebar.radio("Select Drive/Measurement Axis:", ['X-Axis', 'Y-Axis', 'Z-Axis'])
     mu_matrix = dipole_dict[selected_axis]
 else:
     st.sidebar.error(f"Error reading files from directory '{active_n}/'. Check terminal for details.")
-    mu_matrix = None
-
+    H_matrix, dipole_dict, mu_matrix = None, None, None
 # --- 5. CREATE THE TABS ---
 tab1, tab2, tab3 = st.tabs(["🎛️ The Synthesizer", "🎚️ The Paddle Board", "🧠 3D PyTorch Control"])#, "🔍 N vs N' Differencing"])
 
